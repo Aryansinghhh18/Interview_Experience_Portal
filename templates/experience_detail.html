@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}{{ experience.company_name }} - {{ experience.job_role }} Interview Experience | PrepAI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="mb-3">
+    <a href="{{ url_for('experience.list_experiences') }}" class="text-decoration-none text-muted small">
+      &larr; Back to all experiences
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <!-- Main Experience Card -->
+      <div class="portal-card p-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+          <div>
+            <span class="badge bg-light text-primary border mb-2 fs-6 px-3 py-1">{{ experience.company_name }}</span>
+            <h3 class="fw-bold mb-1">{{ experience.job_role }}</h3>
+            <div class="text-muted small">
+              <span>Shared by {{ experience.user_name }}</span>
+              <span class="mx-2">&bull;</span>
+              <span><i class="bi bi-calendar3 me-1"></i> {{ experience.interview_date or 'Recent' }}</span>
+              <span class="mx-2">&bull;</span>
+              <span><i class="bi bi-geo-alt me-1"></i> {{ experience.interview_type }}</span>
+            </div>
+          </div>
+
+          <div class="text-end">
+            <span class="badge {% if experience.difficulty == 'Hard' %}bg-danger{% elif experience.difficulty == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %} fs-6 px-3 py-2 mb-1">
+              {{ experience.difficulty }} Difficulty
+            </span>
+            <div>
+              <span class="badge {% if experience.result == 'Selected' %}badge-selected{% elif experience.result == 'Rejected' %}badge-rejected{% else %}bg-light text-dark{% endif %}">
+                Result: {{ experience.result }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meta pills -->
+        <div class="d-flex flex-wrap gap-2 py-3 border-top border-bottom my-3 bg-light rounded-3 px-3">
+          <div class="small text-secondary">
+            <strong>Experience Level:</strong> {{ experience.experience_level }}
+          </div>
+          <div class="text-muted">&bull;</div>
+          <div class="small text-secondary">
+            <strong>Rounds:</strong> {{ experience.interview_rounds }}
+          </div>
+          <div class="text-muted">&bull;</div>
+          <div class="small text-secondary">
+            <strong>Interview Format:</strong> {{ experience.interview_type }}
+          </div>
+        </div>
+
+        <!-- Overall Experience -->
+        <div class="mb-4">
+          <h5 class="fw-bold text-dark mb-2"><i class="bi bi-chat-left-quote text-primary me-2"></i>Overall Process & Experience</h5>
+          <div class="p-3 bg-white rounded-3 border text-secondary" style="white-space: pre-line; line-height: 1.7;">
+            {{ experience.overall_experience }}
+          </div>
+        </div>
+
+        <!-- Technical Questions -->
+        {% if experience.technical_questions %}
+        <div class="mb-4">
+          <h5 class="fw-bold text-dark mb-2"><i class="bi bi-code-slash text-success me-2"></i>Technical Questions & Coding Rounds</h5>
+          <div class="p-3 bg-light rounded-3 border text-dark" style="white-space: pre-line; font-family: monospace; font-size: 0.95rem; line-height: 1.6;">
+            {{ experience.technical_questions }}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- HR Behavioral Questions -->
+        {% if experience.hr_questions %}
+        <div class="mb-4">
+          <h5 class="fw-bold text-dark mb-2"><i class="bi bi-people text-info me-2"></i>HR & Behavioral Questions</h5>
+          <div class="p-3 bg-light rounded-3 border text-secondary" style="white-space: pre-line; line-height: 1.6;">
+            {{ experience.hr_questions }}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Preparation Tips -->
+        {% if experience.preparation_tips %}
+        <div class="mb-3">
+          <h5 class="fw-bold text-dark mb-2"><i class="bi bi-lightbulb text-warning me-2"></i>Preparation Advice & Recommendations</h5>
+          <div class="p-3 bg-warning-light rounded-3 border border-warning text-dark" style="white-space: pre-line; line-height: 1.6;">
+            {{ experience.preparation_tips }}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if session.get('user_id') == experience.user_id %}
+        <div class="pt-3 border-top d-flex gap-2 justify-content-end">
+          <a href="{{ url_for('experience.edit_experience', exp_id=experience.id) }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i> Edit Submission
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right Sidebar: AI Shortcuts & Related Experiences -->
+    <div class="col-lg-4">
+      <!-- AI Action Card for this company -->
+      <div class="portal-card p-4 mb-4">
+        <h6 class="fw-bold mb-2"><i class="bi bi-robot text-primary me-2"></i>Prepare for {{ experience.company_name }}</h6>
+        <p class="text-muted small mb-3">Practice a custom simulated interview or generate questions tailored to this company.</p>
+        
+        <form method="POST" action="{{ url_for('mock_interview.start') }}" class="mb-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="company_name" value="{{ experience.company_name }}">
+          <input type="hidden" name="job_role" value="{{ experience.job_role }}">
+          <input type="hidden" name="category" value="Technical">
+          <input type="hidden" name="difficulty" value="{{ experience.difficulty }}">
+          <input type="hidden" name="total_questions" value="5">
+          <button type="submit" class="btn btn-portal-primary btn-sm w-100">
+            <i class="bi bi-play-circle me-1"></i> Practice Mock Interview
+          </button>
+        </form>
+
+        <a href="{{ url_for('question_generator.generate') }}" class="btn btn-outline-secondary btn-sm w-100">
+          <i class="bi bi-patch-question me-1"></i> Generate Role Questions
+        </a>
+      </div>
+
+      <!-- Related Experiences from same company -->
+      <div class="portal-card p-4">
+        <h6 class="fw-bold mb-3">More from {{ experience.company_name }}</h6>
+        {% if related_experiences %}
+        <div class="list-group list-group-flush">
+          {% for rel in related_experiences %}
+          <a href="{{ url_for('experience.experience_detail', exp_id=rel.id) }}" class="list-group-item list-group-item-action px-0 py-2 border-bottom">
+            <div class="fw-bold small text-dark">{{ rel.job_role }}</div>
+            <div class="text-muted" style="font-size: 0.75rem;">
+              {{ rel.difficulty }} &bull; {{ rel.result }} &bull; {{ rel.interview_date or 'Recent' }}
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted small mb-0">No other experiences recorded yet for {{ experience.company_name }}.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

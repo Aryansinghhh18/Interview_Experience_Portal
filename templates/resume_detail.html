@@ -1,0 +1,146 @@
+{% extends "user_layout.html" %}
+
+{% block title %}Resume Analysis Report: {{ analysis.target_job_role }} | PrepAI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-11">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="ai-badge"><i class="bi bi-file-earmark-check-fill"></i> Resume Report</span>
+          <span class="text-muted small">Target: {{ analysis.target_job_role }} &bull; {{ analysis.created_at[:10] if analysis.created_at else '' }}</span>
+        </div>
+        <h3 class="fw-bold mb-0">Role Compatibility & Resume Optimization</h3>
+        <p class="text-muted small mb-0">File: {{ analysis.original_filename }}</p>
+      </div>
+
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('resume_analyzer.index') }}" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-upload me-1"></i> Analyze Another Resume
+        </a>
+        <form method="POST" action="{{ url_for('resume_analyzer.delete_analysis', analysis_id=analysis.id) }}" class="d-inline" onsubmit="return confirm('Permanently delete this analysis and stored document for privacy?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-trash me-1"></i> Delete (Privacy Clean)
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Compatibility Score Card -->
+    <div class="portal-card p-4 mb-4">
+      <div class="row align-items-center">
+        <div class="col-md-4 text-center border-end">
+          <div class="score-circle mb-3" style="--score: {{ analysis.compatibility_score or 75 }};">
+            <div class="score-circle-inner">
+              <span class="display-6 fw-bold text-primary">{{ analysis.compatibility_score or 0 }}%</span>
+              <span class="text-muted small fw-semibold">Alignment</span>
+            </div>
+          </div>
+          <h6 class="fw-bold mb-1">Target Compatibility Score</h6>
+          <span class="text-muted small">Role: {{ analysis.target_job_role }}</span>
+        </div>
+
+        <div class="col-md-8 ps-md-4 mt-3 mt-md-0">
+          <h5 class="fw-bold text-dark mb-2"><i class="bi bi-stars text-primary me-2"></i>Summary Diagnostics</h5>
+          <div class="mb-3">
+            <h6 class="fw-bold small text-muted text-uppercase mb-1">Education Background</h6>
+            <p class="small text-secondary mb-2">{{ analysis.education_summary or 'Education details extracted from resume.' }}</p>
+          </div>
+          <div class="mb-3">
+            <h6 class="fw-bold small text-muted text-uppercase mb-1">Projects Portfolio</h6>
+            <p class="small text-secondary mb-2">{{ analysis.projects_summary or 'Project experience identified in resume.' }}</p>
+          </div>
+          <div>
+            <h6 class="fw-bold small text-muted text-uppercase mb-1">Work History</h6>
+            <p class="small text-secondary mb-0">{{ analysis.experience_summary or 'Work history summary.' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills Cloud & Missing Skills -->
+    <div class="row g-4 mb-4">
+      <div class="col-md-7">
+        <div class="portal-card p-4 h-100">
+          <h5 class="fw-bold mb-3"><i class="bi bi-cpu text-primary me-2"></i>Extracted Technical Skills</h5>
+          <div>
+            {% for sk in skills %}
+            <span class="badge bg-primary-light text-primary border me-1 mb-2 py-2 px-3 fs-6">{{ sk }}</span>
+            {% else %}
+            <p class="text-muted small">No specific technical keywords identified.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-5">
+        <div class="portal-card p-4 h-100 border-warning">
+          <h5 class="fw-bold text-warning-emphasis mb-3"><i class="bi bi-exclamation-diamond-fill text-warning me-2"></i>Missing / Underrepresented Skills</h5>
+          <p class="text-muted small mb-2">High-demand skills for {{ analysis.target_job_role }} absent from your resume:</p>
+          <div>
+            {% for msk in missing_skills %}
+            <span class="badge bg-warning-light text-warning border border-warning me-1 mb-2 py-2 px-3 fs-6">{{ msk }}</span>
+            {% else %}
+            <p class="text-success small mb-0"><i class="bi bi-check-circle me-1"></i> No critical skill omissions detected!</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Strengths and Weaknesses -->
+    <div class="row g-4 mb-4">
+      <div class="col-md-6">
+        <div class="portal-card p-4 h-100 border-success">
+          <h5 class="fw-bold text-success mb-3"><i class="bi bi-hand-thumbs-up-fill me-2"></i>Identified Resume Strengths</h5>
+          <ul class="list-unstyled mb-0">
+            {% for st in strengths %}
+            <li class="d-flex align-items-start gap-2 mb-2 small text-secondary">
+              <i class="bi bi-check-circle-fill text-success mt-1"></i>
+              <span>{{ st }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="portal-card p-4 h-100 border-danger">
+          <h5 class="fw-bold text-danger mb-3"><i class="bi bi-exclamation-circle-fill me-2"></i>Gaps & Weaknesses</h5>
+          <ul class="list-unstyled mb-0">
+            {% for wk in weaknesses %}
+            <li class="d-flex align-items-start gap-2 mb-2 small text-secondary">
+              <i class="bi bi-x-circle-fill text-danger mt-1"></i>
+              <span>{{ wk }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actionable Improvement Suggestions & Suggested Learning Topics -->
+    <div class="portal-card p-4 mb-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-magic text-primary me-2"></i>Actionable Resume Improvements</h5>
+      <div class="list-group list-group-flush mb-4">
+        {% for sug in improvement_suggestions %}
+        <div class="list-group-item px-0 py-2 d-flex align-items-start gap-2 border-bottom">
+          <i class="bi bi-arrow-right-circle-fill text-primary mt-1"></i>
+          <span class="small text-secondary">{{ sug }}</span>
+        </div>
+        {% endfor %}
+      </div>
+
+      <h6 class="fw-bold text-dark mb-2"><i class="bi bi-mortarboard text-info me-2"></i>Recommended Technical Topics to Study</h6>
+      <div>
+        {% for top in suggested_topics %}
+        <span class="badge bg-light text-dark border me-1 mb-1 p-2 small">{{ top }}</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

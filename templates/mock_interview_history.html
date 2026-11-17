@@ -1,0 +1,87 @@
+{% extends "user_layout.html" %}
+
+{% block title %}Mock Interview History | PrepAI Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">Mock Interview Sessions History</h3>
+    <p class="text-muted small mb-0">Review all your previous practice sessions, question answers, and detailed evaluation reports.</p>
+  </div>
+  <a href="{{ url_for('mock_interview.setup') }}" class="btn btn-portal-primary btn-sm d-flex align-items-center gap-1">
+    <i class="bi bi-play-circle"></i> Start New Mock Interview
+  </a>
+</div>
+
+{% if sessions %}
+<div class="portal-card overflow-hidden">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light text-muted small text-uppercase">
+        <tr>
+          <th class="ps-4">Target Company & Role</th>
+          <th>Category & Difficulty</th>
+          <th>Questions</th>
+          <th>Date Taken</th>
+          <th>Status</th>
+          <th>Overall Score</th>
+          <th class="text-end pe-4">Report</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sessions %}
+        <tr>
+          <td class="ps-4">
+            <div class="fw-bold text-dark">{{ s.company_name }}</div>
+            <div class="text-muted small">{{ s.job_role }}</div>
+          </td>
+          <td>
+            <span class="badge bg-light text-primary border me-1">{{ s.interview_category }}</span>
+            <span class="badge {% if s.difficulty == 'Advanced' %}bg-danger{% elif s.difficulty == 'Intermediate' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+              {{ s.difficulty }}
+            </span>
+          </td>
+          <td class="small">{{ s.total_questions }} Questions</td>
+          <td class="small text-muted">{{ s.created_at[:10] if s.created_at else 'Recent' }}</td>
+          <td>
+            {% if s.status == 'completed' %}
+            <span class="badge badge-approved"><i class="bi bi-check-circle me-1"></i> Completed</span>
+            {% else %}
+            <span class="badge badge-pending"><i class="bi bi-hourglass-split me-1"></i> In Progress</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if s.overall_score is not none %}
+            <span class="fw-bold {% if s.overall_score >= 80 %}text-success{% elif s.overall_score >= 60 %}text-warning{% else %}text-danger{% endif %} fs-6">
+              {{ s.overall_score }}%
+            </span>
+            {% else %}
+            <span class="text-muted small">&mdash;</span>
+            {% endif %}
+          </td>
+          <td class="text-end pe-4">
+            {% if s.status == 'completed' %}
+            <a href="{{ url_for('mock_interview.report', session_id=s.id) }}" class="btn btn-sm btn-outline-primary">
+              View Report &rarr;
+            </a>
+            {% else %}
+            <a href="{{ url_for('mock_interview.session_runner', session_id=s.id) }}" class="btn btn-sm btn-primary">
+              Resume Session &rarr;
+            </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="bi bi-clock-history empty-state-icon"></i>
+  <h5>No mock interview sessions recorded yet.</h5>
+  <p class="text-muted small">Practice realistic company interviews and receive actionable feedback on your technical depth.</p>
+  <a href="{{ url_for('mock_interview.setup') }}" class="btn btn-portal-primary btn-sm">Start Your First Interview</a>
+</div>
+{% endif %}
+{% endblock %}

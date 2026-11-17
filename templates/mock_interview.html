@@ -1,0 +1,122 @@
+{% extends "user_layout.html" %}
+
+{% block title %}AI Mock Interview Setup | PrepAI Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="mb-4">
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="ai-badge"><i class="bi bi-robot"></i> AI Module 1</span>
+        <span class="text-muted small">Powered by {{ active_ai_provider|upper }}</span>
+      </div>
+      <h3 class="fw-bold mb-1">Interactive AI Mock Interview</h3>
+      <p class="text-muted small">Simulate realistic company interview rounds with dynamic questions, instant rubric grading, and a final performance diagnostic.</p>
+    </div>
+
+    <!-- Setup Card -->
+    <div class="portal-card p-4 mb-4">
+      <form method="POST" action="{{ url_for('mock_interview.start') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <h5 class="fw-bold text-primary mb-3"><i class="bi bi-sliders me-2"></i>Configure Your Interview Session</h5>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="company_name" class="form-label fw-semibold small">Target Company *</label>
+            <input type="text" list="company_list" class="form-control" id="company_name" name="company_name" placeholder="e.g. Google, Amazon, Microsoft, TCS" required>
+            <datalist id="company_list">
+              {% for comp in companies %}
+              <option value="{{ comp.company_name }}">
+              {% endfor %}
+            </datalist>
+            <div class="form-text">Questions will match the interview style of this company.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="job_role" class="form-label fw-semibold small">Job Role / Position *</label>
+            <input type="text" class="form-control" id="job_role" name="job_role" placeholder="e.g. Backend Developer, SDE 1, Full Stack" required>
+            <div class="form-text">Technical depth will calibrate to this target role.</div>
+          </div>
+
+          <div class="col-md-4">
+            <label for="category" class="form-label fw-semibold small">Interview Category</label>
+            <select class="form-select" id="category" name="category">
+              <option value="Technical" selected>Technical (Coding & System Architecture)</option>
+              <option value="HR">HR & Behavioral (STAR format)</option>
+              <option value="Mixed">Mixed (Technical + HR Rounds)</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="difficulty" class="form-label fw-semibold small">Difficulty Level</label>
+            <select class="form-select" id="difficulty" name="difficulty">
+              <option value="Beginner">Beginner (Foundations & Concepts)</option>
+              <option value="Intermediate" selected>Intermediate (Standard Industry Level)</option>
+              <option value="Advanced">Advanced (Complex Edge Cases & Scale)</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="total_questions" class="form-label fw-semibold small">Number of Questions</label>
+            <select class="form-select" id="total_questions" name="total_questions">
+              <option value="3">3 Questions (Quick Practice ~10 mins)</option>
+              <option value="5" selected>5 Questions (Standard Round ~20 mins)</option>
+              <option value="7">7 Questions (Comprehensive Round ~35 mins)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="alert alert-light border small text-muted mb-4">
+          <i class="bi bi-info-circle me-1"></i> <strong>Practice Disclaimer:</strong> AI evaluation scores are generated based on a multi-criteria rubric (relevance, correctness, completeness, and clarity) to assist your practice. They represent simulated feedback rather than guaranteed real-world hiring outcomes.
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <a href="{{ url_for('mock_interview.history') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-clock-history me-1"></i> View Previous Sessions
+          </a>
+          <button type="submit" class="btn btn-portal-primary px-4 fw-semibold">
+            <i class="bi bi-play-circle-fill me-1"></i> Begin Mock Interview Session
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Past Sessions Teaser -->
+    {% if past_sessions %}
+    <div class="portal-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">Recent Mock Interview Sessions</h6>
+        <a href="{{ url_for('mock_interview.history') }}" class="small text-primary text-decoration-none">View All History</a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for s in past_sessions %}
+        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+          <div>
+            <span class="fw-bold text-dark">{{ s.company_name }}</span> &bull; 
+            <span class="text-secondary small">{{ s.job_role }} ({{ s.difficulty }} &bull; {{ s.interview_category }})</span>
+            <div class="text-muted" style="font-size: 0.75rem;">
+              {{ s.created_at[:10] if s.created_at else '' }} &bull; {{ s.total_questions }} Questions
+            </div>
+          </div>
+          <div>
+            {% if s.status == 'completed' %}
+            <span class="badge bg-success me-2">{{ s.overall_score }}%</span>
+            <a href="{{ url_for('mock_interview.report', session_id=s.id) }}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.8rem;">
+              View Report
+            </a>
+            {% else %}
+            <span class="badge bg-warning text-dark me-2">In Progress</span>
+            <a href="{{ url_for('mock_interview.session_runner', session_id=s.id) }}" class="btn btn-sm btn-primary py-0 px-2" style="font-size: 0.8rem;">
+              Resume
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

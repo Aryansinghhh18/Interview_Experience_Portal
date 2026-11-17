@@ -1,0 +1,279 @@
+{% extends "user_layout.html" %}
+
+{% block title %}AI Performance Analysis Dashboard | PrepAI Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="ai-badge"><i class="bi bi-graph-up-arrow"></i> AI Module 5</span>
+      <span class="text-muted small">Diagnostic Analytics</span>
+    </div>
+    <h3 class="fw-bold mb-1">Interview Performance Analytics</h3>
+    <p class="text-muted small mb-0">Track your mock interview score progression, technical vs behavioral balance, and personalized AI mentor recommendations.</p>
+  </div>
+  {% if analytics.has_data %}
+  <a href="{{ url_for('mock_interview.setup') }}" class="btn btn-portal-primary btn-sm d-flex align-items-center gap-1">
+    <i class="bi bi-play-circle"></i> Take New Mock Interview
+  </a>
+  {% endif %}
+</div>
+
+{% if analytics.has_data %}
+<!-- Top Metrics Row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-6">
+    <div class="stat-card">
+      <div class="stat-icon primary"><i class="bi bi-clipboard2-check-fill"></i></div>
+      <div>
+        <div class="stat-value">{{ analytics.total_interviews }}</div>
+        <div class="stat-label">Completed Sessions</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 col-6">
+    <div class="stat-card">
+      <div class="stat-icon success"><i class="bi bi-trophy-fill"></i></div>
+      <div>
+        <div class="stat-value">{{ analytics.average_score }}%</div>
+        <div class="stat-label">Average Performance</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 col-6">
+    <div class="stat-card">
+      <div class="stat-icon secondary"><i class="bi bi-code-square"></i></div>
+      <div>
+        <div class="stat-value">{{ analytics.technical_avg }}%</div>
+        <div class="stat-label">Technical Mastery</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 col-6">
+    <div class="stat-card">
+      <div class="stat-icon warning"><i class="bi bi-people-fill"></i></div>
+      <div>
+        <div class="stat-value">{{ analytics.hr_avg }}%</div>
+        <div class="stat-label">Behavioral / HR Avg</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Visual Charts Grid (Chart.js) -->
+<div class="row g-4 mb-4">
+  <!-- Chart 1: Performance Over Time -->
+  <div class="col-lg-8">
+    <div class="portal-card p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Performance Trend Over Time</h5>
+        <span class="badge bg-light text-primary border small">Session History</span>
+      </div>
+      <div style="position: relative; height: 280px; width: 100%;">
+        <canvas id="timelineChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart 2: Technical vs HR Round Comparison -->
+  <div class="col-lg-4">
+    <div class="portal-card p-4 h-100">
+      <h5 class="fw-bold mb-3">Round Comparison</h5>
+      <div style="position: relative; height: 280px; width: 100%;">
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI Personalized Recommendations Diagnostic -->
+<div class="portal-card p-4 mb-4 border-start border-4 border-primary">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="fw-bold mb-0"><i class="bi bi-robot text-primary me-2"></i>Personalized AI Preparation Diagnostic</h5>
+    <span class="ai-badge ai-badge-sm">Powered by {{ active_ai_provider|upper }}</span>
+  </div>
+  <div class="p-3 bg-light rounded-3 text-secondary small" style="white-space: pre-line; line-height: 1.8;">
+    {{ analytics.ai_recommendations }}
+  </div>
+</div>
+
+<!-- Strong Topics vs Weak Topics -->
+<div class="row g-4 mb-4">
+  <div class="col-md-6">
+    <div class="portal-card p-4 h-100 border-success">
+      <h5 class="fw-bold text-success mb-3"><i class="bi bi-hand-thumbs-up-fill me-2"></i>Demonstrated Strengths</h5>
+      {% if analytics.strong_topics %}
+      <div class="list-group list-group-flush">
+        {% for st in analytics.strong_topics %}
+        <div class="list-group-item px-0 py-2 border-bottom">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="fw-bold text-dark small">{{ st.topic }}</span>
+            <span class="badge bg-success small">{{ st.score }}%</span>
+          </div>
+          <p class="text-secondary small mb-0">{{ st.feedback }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted small mb-0">Complete more sessions to establish top strength areas.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="portal-card p-4 h-100 border-danger">
+      <h5 class="fw-bold text-danger mb-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>Priority Improvement Areas</h5>
+      {% if analytics.weak_topics %}
+      <div class="list-group list-group-flush">
+        {% for wt in analytics.weak_topics %}
+        <div class="list-group-item px-0 py-2 border-bottom">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="fw-bold text-dark small">{{ wt.topic }}</span>
+            <span class="badge bg-danger small">{{ wt.score }}%</span>
+          </div>
+          <p class="text-secondary small mb-0">{{ wt.feedback }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted small mb-0">Great job! No critical weakness patterns observed in recent answers.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Session History Table -->
+<div class="portal-card overflow-hidden">
+  <div class="p-3 bg-light border-bottom">
+    <h6 class="fw-bold mb-0">Completed Interview Sessions</h6>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light text-muted small text-uppercase">
+        <tr>
+          <th class="ps-4">Company & Role</th>
+          <th>Category</th>
+          <th>Difficulty</th>
+          <th>Date Taken</th>
+          <th>Score</th>
+          <th class="text-end pe-4">Report</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in analytics.sessions_history %}
+        <tr>
+          <td class="ps-4">
+            <div class="fw-bold text-dark">{{ s.company_name }}</div>
+            <div class="text-muted small">{{ s.job_role }}</div>
+          </td>
+          <td><span class="badge bg-light text-primary border">{{ s.interview_category }}</span></td>
+          <td>
+            <span class="badge {% if s.difficulty == 'Advanced' %}bg-danger{% elif s.difficulty == 'Intermediate' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+              {{ s.difficulty }}
+            </span>
+          </td>
+          <td class="small text-muted">{{ s.created_at[:10] if s.created_at else '' }}</td>
+          <td>
+            <span class="fw-bold {% if s.overall_score >= 80 %}text-success{% elif s.overall_score >= 60 %}text-warning{% else %}text-danger{% endif %} fs-6">
+              {{ s.overall_score }}%
+            </span>
+          </td>
+          <td class="text-end pe-4">
+            <a href="{{ url_for('mock_interview.report', session_id=s.id) }}" class="btn btn-sm btn-outline-primary">
+              Full Report &rarr;
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% else %}
+<!-- Informative Empty State (Handling user with 0 completed mock interviews) -->
+<div class="empty-state py-5">
+  <div class="stat-icon mx-auto mb-3" style="width: 72px; height: 72px; font-size: 2.5rem; background: var(--primary-light); color: var(--primary);">
+    <i class="bi bi-graph-up"></i>
+  </div>
+  <h4 class="fw-bold mb-2">No Mock Interview Data Recorded Yet</h4>
+  <p class="text-muted small" style="max-width: 500px; margin: 0 auto 1.5rem auto;">
+    Complete your first simulated AI mock interview to generate performance metrics, trajectory graphs, category comparisons, and personalized AI mentor recommendations.
+  </p>
+  <a href="{{ url_for('mock_interview.setup') }}" class="btn btn-portal-primary btn-lg px-4 fw-semibold">
+    <i class="bi bi-play-circle me-1"></i> Start Your First Mock Interview
+  </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if analytics.has_data %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 1. Timeline Line Chart
+    const ctxTimeline = document.getElementById('timelineChart');
+    if (ctxTimeline) {
+      new Chart(ctxTimeline, {
+        type: 'line',
+        data: {
+          labels: {{ timeline_labels_json|safe }},
+          datasets: [{
+            label: 'Overall Score (%)',
+            data: {{ timeline_scores_json|safe }},
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            fill: true,
+            tension: 0.35,
+            pointBackgroundColor: '#4f46e5',
+            pointRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              min: 0,
+              max: 100,
+              ticks: { callback: v => v + '%' }
+            }
+          }
+        }
+      });
+    }
+
+    // 2. Category Bar Chart
+    const ctxCategory = document.getElementById('categoryChart');
+    if (ctxCategory) {
+      new Chart(ctxCategory, {
+        type: 'bar',
+        data: {
+          labels: {{ category_labels_json|safe }},
+          datasets: [{
+            label: 'Average Score (%)',
+            data: {{ category_scores_json|safe }},
+            backgroundColor: ['#4f46e5', '#0ea5e9'],
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              min: 0,
+              max: 100,
+              ticks: { callback: v => v + '%' }
+            }
+          }
+        }
+      });
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}

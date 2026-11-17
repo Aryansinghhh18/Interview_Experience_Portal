@@ -1,0 +1,31 @@
+# Python virtual environments
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Environment variables and API keys
+.env
+.env.*
+!.env.example
+
+# Database files
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Uploads
+uploads/
+instance/
+
+# OS files
+.DS_Store
+Thumbs.db

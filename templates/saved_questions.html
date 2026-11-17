@@ -1,0 +1,80 @@
+{% extends "user_layout.html" %}
+
+{% block title %}Saved Practice Questions | PrepAI Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">Bookmarked Practice Questions</h3>
+    <p class="text-muted small mb-0">Your personal repository of saved interview questions for revision and practice.</p>
+  </div>
+  <a href="{{ url_for('question_generator.generate') }}" class="btn btn-portal-primary btn-sm d-flex align-items-center gap-1">
+    <i class="bi bi-sparkles"></i> Generate New Questions
+  </a>
+</div>
+
+{% if questions %}
+<div class="row g-3">
+  {% for q in questions %}
+  <div class="col-12" id="saved-card-{{ q.id }}">
+    <div class="portal-card p-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-light text-primary border">{{ q.company_name }}</span>
+          <span class="badge bg-light text-secondary border">{{ q.job_role }}</span>
+          <span class="badge {% if q.difficulty == 'Advanced' %}bg-danger{% elif q.difficulty == 'Intermediate' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+            {{ q.difficulty }}
+          </span>
+          <span class="badge bg-light text-info border">{{ q.category }}</span>
+        </div>
+
+        <button class="btn btn-sm btn-outline-danger btn-bookmark-question" data-question-id="{{ q.id }}" data-saved="true">
+          <i class="bi bi-trash"></i> Remove
+        </button>
+      </div>
+
+      <h5 class="fw-bold text-dark mb-3">{{ q.question }}</h5>
+
+      <div class="mb-3">
+        <h6 class="fw-bold small text-muted text-uppercase">Suggested Model Answer:</h6>
+        <div class="p-3 bg-light rounded border small text-secondary" style="white-space: pre-line;">
+          {{ q.suggested_answer }}
+        </div>
+      </div>
+
+      {% if q.key_concepts %}
+      <div class="mb-3">
+        <span class="fw-semibold small text-muted me-2">Key Concepts:</span>
+        {% for concept in q.key_concepts.split(',') %}
+        <span class="badge bg-white text-dark border me-1 small">{{ concept.strip() }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="pt-2 border-top d-flex justify-content-between align-items-center small text-muted">
+        <span>Saved to notebook</span>
+        <form method="POST" action="{{ url_for('mock_interview.start') }}" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="company_name" value="{{ q.company_name }}">
+          <input type="hidden" name="job_role" value="{{ q.job_role }}">
+          <input type="hidden" name="category" value="{{ q.category }}">
+          <input type="hidden" name="difficulty" value="{{ q.difficulty }}">
+          <input type="hidden" name="total_questions" value="3">
+          <button type="submit" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-play-circle me-1"></i> Practice in Mock Session
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="bi bi-bookmark-x empty-state-icon"></i>
+  <h5>No saved questions in your repository.</h5>
+  <p class="text-muted small">Generate practice questions and click 'Save' to collect essential problems for revision.</p>
+  <a href="{{ url_for('question_generator.generate') }}" class="btn btn-portal-primary btn-sm">Generate Questions</a>
+</div>
+{% endif %}
+{% endblock %}

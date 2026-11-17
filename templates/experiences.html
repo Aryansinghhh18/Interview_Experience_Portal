@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Explore Real Company Interview Experiences | PrepAI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+      <h3 class="fw-bold mb-1">Company Interview Experiences</h3>
+      <p class="text-muted small mb-0">Browse real technical and HR rounds, questions, and outcomes shared by peers.</p>
+    </div>
+    {% if session.get('user_id') %}
+    <a href="{{ url_for('experience.add_experience') }}" class="btn btn-portal-primary btn-sm d-flex align-items-center gap-1">
+      <i class="bi bi-plus-circle"></i> Share Your Experience
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Search and Filter Bar -->
+  <div class="portal-card p-3 mb-4">
+    <form method="GET" action="{{ url_for('experience.list_experiences') }}" class="row g-2 align-items-center">
+      <div class="col-md-3">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" class="form-control" name="search" value="{{ search_query }}" placeholder="Search questions, keywords...">
+        </div>
+      </div>
+
+      <div class="col-md-2">
+        <select class="form-select form-select-sm" name="company">
+          <option value="">All Companies</option>
+          {% for comp in companies %}
+          <option value="{{ comp.company_name }}" {% if selected_company == comp.company_name %}selected{% endif %}>
+            {{ comp.company_name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <input type="text" class="form-control form-control-sm" name="role" value="{{ selected_role }}" placeholder="Role (e.g. SDE, Data)">
+      </div>
+
+      <div class="col-md-2">
+        <select class="form-select form-select-sm" name="difficulty">
+          <option value="">Any Difficulty</option>
+          <option value="Easy" {% if selected_difficulty == 'Easy' %}selected{% endif %}>Easy</option>
+          <option value="Medium" {% if selected_difficulty == 'Medium' %}selected{% endif %}>Medium</option>
+          <option value="Hard" {% if selected_difficulty == 'Hard' %}selected{% endif %}>Hard</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select class="form-select form-select-sm" name="experience_level">
+          <option value="">Any Experience Level</option>
+          <option value="Fresher" {% if selected_level == 'Fresher' %}selected{% endif %}>Fresher</option>
+          <option value="Entry Level" {% if selected_level == 'Entry Level' %}selected{% endif %}>Entry Level</option>
+          <option value="Mid Level" {% if selected_level == 'Mid Level' %}selected{% endif %}>Mid Level</option>
+          <option value="Senior" {% if selected_level == 'Senior' %}selected{% endif %}>Senior</option>
+        </select>
+      </div>
+
+      <div class="col-md-1 d-grid">
+        <button type="submit" class="btn btn-portal-primary btn-sm">Filter</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Experiences Grid -->
+  {% if experiences %}
+  <div class="row g-4 mb-4">
+    {% for exp in experiences %}
+    <div class="col-md-6">
+      <div class="portal-card p-4 h-100 d-flex flex-column portal-card-hover">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <span class="badge bg-light text-primary border mb-1">{{ exp.company_name }}</span>
+            <h5 class="fw-bold mb-1">{{ exp.job_role }}</h5>
+            <div class="text-muted small">
+              <span><i class="bi bi-person me-1"></i> {{ exp.user_name }}</span>
+              <span class="mx-2">&bull;</span>
+              <span><i class="bi bi-calendar3 me-1"></i> {{ exp.interview_date or 'Recent' }}</span>
+              <span class="mx-2">&bull;</span>
+              <span><i class="bi bi-geo-alt me-1"></i> {{ exp.interview_type }}</span>
+            </div>
+          </div>
+
+          <div class="text-end">
+            <span class="badge {% if exp.difficulty == 'Hard' %}bg-danger{% elif exp.difficulty == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %} mb-1">
+              {{ exp.difficulty }}
+            </span>
+            <div>
+              <span class="badge {% if exp.result == 'Selected' %}badge-selected{% elif exp.result == 'Rejected' %}badge-rejected{% else %}bg-light text-dark{% endif %} small">
+                {{ exp.result }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-secondary small mb-3 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+          {{ exp.overall_experience }}
+        </p>
+
+        <!-- Technical snippets preview if available -->
+        {% if exp.technical_questions %}
+        <div class="p-2 bg-light rounded-2 border mb-3 small">
+          <span class="fw-semibold text-dark"><i class="bi bi-code-slash text-primary me-1"></i> Tech Topics:</span>
+          <span class="text-muted text-truncate d-inline-block align-middle" style="max-width: 85%;">
+            {{ exp.technical_questions[:120] }}...
+          </span>
+        </div>
+        {% endif %}
+
+        <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+          <span class="small text-muted">
+            <i class="bi bi-layers me-1"></i> {{ exp.interview_rounds }} Rounds ({{ exp.experience_level }})
+          </span>
+          <a href="{{ url_for('experience.experience_detail', exp_id=exp.id) }}" class="btn btn-sm btn-outline-primary fw-semibold">
+            Full Experience &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% for p in range(1, total_pages + 1) %}
+      <li class="page-item {% if p == page %}active{% endif %}">
+        <a class="page-link" href="{{ url_for('experience.list_experiences', page=p, company=selected_company, role=selected_role, difficulty=selected_difficulty, experience_level=selected_level, search=search_query) }}">
+          {{ p }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-search empty-state-icon"></i>
+    <h5>No interview experiences matched your filter criteria.</h5>
+    <p class="text-muted small">Try relaxing your search keywords or clearing company filters.</p>
+    <a href="{{ url_for('experience.list_experiences') }}" class="btn btn-outline-primary btn-sm">Clear All Filters</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

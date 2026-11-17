@@ -1,0 +1,89 @@
+{% extends "user_layout.html" %}
+
+{% block title %}AI Resume Analyzer | PrepAI Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="ai-badge"><i class="bi bi-file-earmark-person-fill"></i> AI Module 3</span>
+          <span class="text-muted small">Powered by PyMuPDF & {{ active_ai_provider|upper }}</span>
+        </div>
+        <h3 class="fw-bold mb-1">AI Resume Analyzer & Job Matcher</h3>
+        <p class="text-muted small mb-0">Upload your PDF or DOCX resume to extract technical skills, detect gaps, and evaluate role compatibility.</p>
+      </div>
+      <a href="{{ url_for('resume_analyzer.my_resumes') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-folder2-open me-1"></i> Past Analyses
+      </a>
+    </div>
+
+    <!-- Upload Card -->
+    <div class="portal-card p-4 mb-4">
+      <form method="POST" action="{{ url_for('resume_analyzer.index') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="mb-4">
+          <label for="resume_file" class="form-label fw-semibold small">Upload Resume (PDF or DOCX format, max 10MB) *</label>
+          <input type="file" class="form-control" id="resume_file" name="resume_file" accept=".pdf,.docx" required>
+          <div class="form-text">We extract text securely in memory via PyMuPDF. Documents are kept private to your account.</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="target_job_role" class="form-label fw-semibold small">Target Job Role / Position *</label>
+          <input type="text" class="form-control" id="target_job_role" name="target_job_role" placeholder="e.g. Full Stack Developer, SDE 1, Data Scientist" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="job_description" class="form-label fw-semibold small">Specific Target Job Description (Optional)</label>
+          <textarea class="form-control" id="job_description" name="job_description" rows="4" placeholder="Paste the employer's job description or requirements to enable precision keyword matching..."></textarea>
+          <div class="form-text">When provided, the AI analyzer compares your resume directly against these specific job requirements.</div>
+        </div>
+
+        <!-- Privacy & Disclaimer Note -->
+        <div class="alert alert-light border small text-muted mb-4">
+          <i class="bi bi-shield-check text-success me-1"></i> <strong>Privacy & Integrity Guardrails:</strong>
+          Our AI parser will not invent qualifications or past companies. Compatibility scores are simulated alignment benchmarks rather than objective hiring guarantees. You can permanently delete your analyses and documents at any time.
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-portal-primary px-4 fw-semibold">
+            <i class="bi bi-file-earmark-check me-1"></i> Extract & Analyze Resume
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Past Analyses Quick Shelf -->
+    {% if past_analyses %}
+    <div class="portal-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">Recent Resume Analyses</h6>
+        <a href="{{ url_for('resume_analyzer.my_resumes') }}" class="small text-primary text-decoration-none">View All</a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for a in past_analyses %}
+        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+          <div>
+            <span class="fw-bold text-dark">{{ a.target_job_role }}</span> &bull; 
+            <span class="text-secondary small">{{ a.original_filename }}</span>
+            <div class="text-muted" style="font-size: 0.75rem;">Analyzed on {{ a.created_at[:10] if a.created_at else '' }}</div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge {% if a.compatibility_score and a.compatibility_score >= 80 %}bg-success{% elif a.compatibility_score and a.compatibility_score >= 60 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+              {{ a.compatibility_score or 0 }}% Match
+            </span>
+            <a href="{{ url_for('resume_analyzer.view_analysis', analysis_id=a.id) }}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.8rem;">
+              View Report
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

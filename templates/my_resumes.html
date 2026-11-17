@@ -1,0 +1,69 @@
+{% extends "user_layout.html" %}
+
+{% block title %}My Analyzed Resumes | PrepAI Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h3 class="fw-bold mb-1">My Analyzed Resumes</h3>
+    <p class="text-muted small mb-0">Review previously generated compatibility analyses or delete them to protect document privacy.</p>
+  </div>
+  <a href="{{ url_for('resume_analyzer.index') }}" class="btn btn-portal-primary btn-sm d-flex align-items-center gap-1">
+    <i class="bi bi-file-earmark-plus"></i> Analyze New Resume
+  </a>
+</div>
+
+{% if analyses %}
+<div class="portal-card overflow-hidden">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light text-muted small text-uppercase">
+        <tr>
+          <th class="ps-4">Original Filename</th>
+          <th>Target Job Role</th>
+          <th>Analysis Date</th>
+          <th>Compatibility Score</th>
+          <th class="text-end pe-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in analyses %}
+        <tr>
+          <td class="ps-4">
+            <div class="fw-bold text-dark"><i class="bi bi-file-earmark-pdf text-danger me-1"></i> {{ a.original_filename }}</div>
+          </td>
+          <td><span class="badge bg-light text-primary border">{{ a.target_job_role }}</span></td>
+          <td class="small text-muted">{{ a.created_at[:10] if a.created_at else 'Recent' }}</td>
+          <td>
+            <span class="badge {% if a.compatibility_score and a.compatibility_score >= 80 %}bg-success{% elif a.compatibility_score and a.compatibility_score >= 60 %}bg-warning text-dark{% else %}bg-danger{% endif %} fs-6">
+              {{ a.compatibility_score or 0 }}%
+            </span>
+          </td>
+          <td class="text-end pe-4">
+            <div class="btn-group btn-group-sm">
+              <a href="{{ url_for('resume_analyzer.view_analysis', analysis_id=a.id) }}" class="btn btn-outline-primary" title="View Full Report">
+                <i class="bi bi-eye"></i> View Report
+              </a>
+              <form method="POST" action="{{ url_for('resume_analyzer.delete_analysis', analysis_id=a.id) }}" class="d-inline" onsubmit="return confirm('Permanently delete this resume analysis and document for privacy?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline-danger" title="Delete">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="bi bi-file-earmark-x empty-state-icon"></i>
+  <h5>No resume analyses saved.</h5>
+  <p class="text-muted small">Upload your resume to receive AI feedback and match it against target tech jobs.</p>
+  <a href="{{ url_for('resume_analyzer.index') }}" class="btn btn-portal-primary btn-sm">Upload & Analyze</a>
+</div>
+{% endif %}
+{% endblock %}

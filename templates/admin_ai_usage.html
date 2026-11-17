@@ -1,0 +1,208 @@
+{% extends "admin_layout.html" %}
+
+{% block title %}AI Usage & Model Management | Admin Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="ai-badge"><i class="bi bi-cpu-fill"></i> AI Control Center</span>
+      <span class="text-muted small">Real-time Telemetry</span>
+    </div>
+    <h3 class="fw-bold mb-1">AI Usage, Tokens & Cost Governance</h3>
+    <p class="text-muted small mb-0">Track AI token consumption across features, review model provider configuration, and inspect error logs.</p>
+  </div>
+</div>
+
+<!-- Active AI Provider Configuration Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="portal-card p-4 border-start border-4 {% if current_provider == 'gemini' %}border-primary{% else %}border-secondary{% endif %}">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <h5 class="fw-bold mb-1"><i class="bi bi-google me-2 text-primary"></i>Google Gemini API</h5>
+        {% if current_provider == 'gemini' %}
+        <span class="badge bg-primary text-white">Active Primary Provider</span>
+        {% else %}
+        <span class="badge bg-light text-muted border">Configured Alternative</span>
+        {% endif %}
+      </div>
+      <p class="text-secondary small mb-3">Model: <code>{{ gemini_model }}</code></p>
+      <div class="d-flex align-items-center gap-2 small">
+        <span class="text-muted">API Key Status:</span>
+        {% if has_gemini_key %}
+        <span class="badge bg-success-light text-success border border-success"><i class="bi bi-check-circle me-1"></i> Configured in .env</span>
+        {% else %}
+        <span class="badge bg-danger-light text-danger border border-danger"><i class="bi bi-exclamation-circle me-1"></i> Key Missing</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="portal-card p-4 border-start border-4 {% if current_provider == 'openai' %}border-primary{% else %}border-secondary{% endif %}">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <h5 class="fw-bold mb-1"><i class="bi bi-robot me-2 text-info"></i>OpenAI API</h5>
+        {% if current_provider == 'openai' %}
+        <span class="badge bg-primary text-white">Active Primary Provider</span>
+        {% else %}
+        <span class="badge bg-light text-muted border">Configured Alternative</span>
+        {% endif %}
+      </div>
+      <p class="text-secondary small mb-3">Model: <code>{{ openai_model }}</code></p>
+      <div class="d-flex align-items-center gap-2 small">
+        <span class="text-muted">API Key Status:</span>
+        {% if has_openai_key %}
+        <span class="badge bg-success-light text-success border border-success"><i class="bi bi-check-circle me-1"></i> Configured in .env</span>
+        {% else %}
+        <span class="badge bg-warning-light text-warning border border-warning"><i class="bi bi-exclamation-circle me-1"></i> Key Missing (Optional)</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI Telemetry Metric Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-6">
+    <div class="stat-card">
+      <div class="stat-icon primary"><i class="bi bi-hdd-network-fill"></i></div>
+      <div>
+        <div class="stat-value">{{ stats.total_requests }}</div>
+        <div class="stat-label">Total AI Requests</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 col-6">
+    <div class="stat-card">
+      <div class="stat-icon success"><i class="bi bi-check2-all"></i></div>
+      <div>
+        <div class="stat-value text-success">{{ stats.successful_requests }}</div>
+        <div class="stat-label">Successful Invocations</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 col-6">
+    <div class="stat-card">
+      <div class="stat-icon secondary"><i class="bi bi-cpu"></i></div>
+      <div>
+        <div class="stat-value">{{ stats.total_tokens }}</div>
+        <div class="stat-label">Total Tokens Processed</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 col-6">
+    <div class="stat-card">
+      <div class="stat-icon danger"><i class="bi bi-currency-dollar"></i></div>
+      <div>
+        <div class="stat-value text-danger">${{ "%.4f"|format(stats.total_cost) }}</div>
+        <div class="stat-label">Estimated AI Cost</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Feature Breakdown Row -->
+<div class="row g-4 mb-4">
+  <div class="col-md-7">
+    <div class="portal-card p-4 h-100">
+      <h5 class="fw-bold mb-3">AI Requests by Feature</h5>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead class="table-light small">
+            <tr>
+              <th>Feature Name</th>
+              <th>Requests Count</th>
+              <th>Tokens Used</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in stats.feature_breakdown %}
+            <tr>
+              <td><code>{{ f.feature_name }}</code></td>
+              <td class="fw-bold">{{ f.count }}</td>
+              <td>{{ f.tokens or 0 }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3" class="text-muted small">No AI activity recorded yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <div class="portal-card p-4 h-100">
+      <h5 class="fw-bold mb-3">Provider Invocations</h5>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead class="table-light small">
+            <tr>
+              <th>Provider</th>
+              <th>Calls</th>
+              <th>Tokens</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in stats.provider_breakdown %}
+            <tr>
+              <td><span class="badge bg-dark">{{ p.provider|upper }}</span></td>
+              <td class="fw-bold">{{ p.count }}</td>
+              <td>{{ p.tokens or 0 }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3" class="text-muted small">No calls recorded.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Logs Table -->
+<div class="portal-card overflow-hidden">
+  <div class="p-3 bg-light border-bottom">
+    <h6 class="fw-bold mb-0">Recent AI Execution Logs</h6>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+      <thead class="table-light text-muted small text-uppercase">
+        <tr>
+          <th class="ps-4">Timestamp</th>
+          <th>Feature</th>
+          <th>Provider & Model</th>
+          <th>Status</th>
+          <th>Tokens (Prompt/Completion)</th>
+          <th>Est. Cost</th>
+          <th class="pe-4">User</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in logs %}
+        <tr>
+          <td class="ps-4 text-muted">{{ l.created_at }}</td>
+          <td><span class="badge bg-light text-dark border">{{ l.feature_name }}</span></td>
+          <td>{{ l.provider }} / {{ l.model_name }}</td>
+          <td>
+            {% if l.status == 'success' %}
+            <span class="badge bg-success-light text-success border border-success">Success</span>
+            {% else %}
+            <span class="badge bg-danger-light text-danger border border-danger" title="{{ l.error_message }}">Error</span>
+            {% endif %}
+          </td>
+          <td>{{ l.token_usage }} ({{ l.prompt_tokens }}/{{ l.completion_tokens }})</td>
+          <td>${{ "%.6f"|format(l.estimated_cost or 0) }}</td>
+          <td class="pe-4 text-muted">{{ l.user_name or 'Anonymous' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center py-4 text-muted">No AI execution logs found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

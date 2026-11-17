@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}AI-Powered Interview Experience & Preparation Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Hero Section -->
+  <div class="hero-banner mb-5 shadow">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <span class="badge bg-white text-primary fw-bold mb-3 py-2 px-3 rounded-pill shadow-sm">
+          <i class="bi bi-stars text-warning"></i> Next-Gen Interview Preparation Platform
+        </span>
+        <h1 class="display-5 fw-bold mb-3 text-white">Ace Your Next Tech Interview with Real Experiences & AI</h1>
+        <p class="lead text-light mb-4 opacity-90" style="max-width: 650px;">
+          Access verified interview experiences from top companies, practice realistic AI-evaluated mock interviews, generate role-tailored questions, and get your resume evaluated for job compatibility.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          {% if session.get('user_id') %}
+          <a href="{{ url_for('user.dashboard') }}" class="btn btn-light btn-lg text-primary fw-bold px-4 py-3 rounded-3 shadow">
+            <i class="bi bi-speedometer2 me-2"></i> Go to Dashboard
+          </a>
+          {% else %}
+          <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg text-primary fw-bold px-4 py-3 rounded-3 shadow">
+            <i class="bi bi-rocket-takeoff me-2"></i> Get Started Free
+          </a>
+          <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg fw-semibold px-4 py-3 rounded-3">
+            Sign In
+          </a>
+          {% endif %}
+          <a href="{{ url_for('experience.list_experiences') }}" class="btn btn-outline-light btn-lg fw-semibold px-4 py-3 rounded-3">
+            <i class="bi bi-compass me-2"></i> Explore Experiences
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-4 d-none d-lg-block text-center">
+        <div class="p-4 bg-white rounded-4 shadow text-dark text-start border">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="ai-badge"><i class="bi bi-stars"></i> AI Evaluator</span>
+            <span class="text-muted small ms-auto">Practice Feedback</span>
+          </div>
+          <h6 class="fw-bold mb-1">Target: SDE Backend Engineer</h6>
+          <p class="text-muted small mb-3">Google &bull; Intermediate Difficulty</p>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="fw-semibold">Compatibility Score</span>
+              <span class="text-primary fw-bold">88%</span>
+            </div>
+            <div class="progress progress-modern">
+              <div class="progress-bar bg-primary" style="width: 88%;"></div>
+            </div>
+          </div>
+          <div class="small p-2 bg-light rounded text-secondary border">
+            <i class="bi bi-check-circle-fill text-success me-1"></i> Strong algorithmic decomposition and system resilience.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Statistics Banner -->
+  <div class="row g-3 mb-5">
+    <div class="col-md-3 col-6">
+      <div class="stat-card">
+        <div class="stat-icon primary"><i class="bi bi-briefcase-fill"></i></div>
+        <div>
+          <div class="stat-value">{{ total_experiences }}</div>
+          <div class="stat-label">Approved Experiences</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="stat-card">
+        <div class="stat-icon secondary"><i class="bi bi-buildings"></i></div>
+        <div>
+          <div class="stat-value">{{ total_companies }}</div>
+          <div class="stat-label">Companies Covered</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="stat-card">
+        <div class="stat-icon success"><i class="bi bi-robot"></i></div>
+        <div>
+          <div class="stat-value">4+</div>
+          <div class="stat-label">AI Prep Modules</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="stat-card">
+        <div class="stat-icon warning"><i class="bi bi-patch-check-fill"></i></div>
+        <div>
+          <div class="stat-value">100%</div>
+          <div class="stat-label">Verified Moderation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features Grid -->
+  <div class="mb-5">
+    <div class="text-center mb-5">
+      <span class="ai-badge mb-2"><i class="bi bi-lightning-charge-fill"></i> Intelligent Career Toolkit</span>
+      <h2 class="fw-bold">Everything You Need to Land Your Dream Role</h2>
+      <p class="text-muted" style="max-width: 600px; margin: 0 auto;">
+        From verified student interview rounds to real-time AI mock evaluations and resume screening, our comprehensive suite accelerates your prep.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="portal-card portal-card-hover p-4 h-100">
+          <div class="stat-icon primary mb-3"><i class="bi bi-chat-left-quote-fill"></i></div>
+          <h5 class="fw-bold mb-2">Real Interview Experiences</h5>
+          <p class="text-muted small mb-3">
+            Read detailed, round-by-round interview submissions from peers. Discover technical questions, coding problems, HR behavioral rounds, difficulty ratings, and preparation advice.
+          </p>
+          <a href="{{ url_for('experience.list_experiences') }}" class="fw-semibold text-primary text-decoration-none small">
+            Browse Experiences <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="portal-card portal-card-hover p-4 h-100">
+          <div class="stat-icon secondary mb-3"><i class="bi bi-robot"></i></div>
+          <h5 class="fw-bold mb-2">AI Mock Interviews</h5>
+          <p class="text-muted small mb-3">
+            Practice one-on-one simulated interviews for any company and role. Get multi-criteria rubric evaluation on relevance, technical accuracy, completeness, and clarity.
+          </p>
+          <a href="{{ url_for('mock_interview.setup') }}" class="fw-semibold text-primary text-decoration-none small">
+            Start Mock Interview <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="portal-card portal-card-hover p-4 h-100">
+          <div class="stat-icon success mb-3"><i class="bi bi-file-earmark-diff-fill"></i></div>
+          <h5 class="fw-bold mb-2">AI Resume Analyzer</h5>
+          <p class="text-muted small mb-3">
+            Upload your PDF resume to extract skills, detect missing keywords, calculate role compatibility scores, and receive actionable suggestions for your target dream jobs.
+          </p>
+          <a href="{{ url_for('resume_analyzer.index') }}" class="fw-semibold text-primary text-decoration-none small">
+            Analyze Resume <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="portal-card portal-card-hover p-4 h-100">
+          <div class="stat-icon warning mb-3"><i class="bi bi-search-heart-fill"></i></div>
+          <h5 class="fw-bold mb-2">AI Smart Semantic Search</h5>
+          <p class="text-muted small mb-3">
+            Search interview experiences using natural queries like "entry level Python interviews with difficult SQL rounds" powered by dense vector embeddings and snippet match explanations.
+          </p>
+          <a href="{{ url_for('smart_search.index') }}" class="fw-semibold text-primary text-decoration-none small">
+            Try Smart Search <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="portal-card portal-card-hover p-4 h-100">
+          <div class="stat-icon danger mb-3"><i class="bi bi-patch-question-fill"></i></div>
+          <h5 class="fw-bold mb-2">AI Question Generator</h5>
+          <p class="text-muted small mb-3">
+            Generate custom practice questions across Technical, Scenario-based, and HR categories, with model answers, explanations, and core concepts to study.
+          </p>
+          <a href="{{ url_for('question_generator.generate') }}" class="fw-semibold text-primary text-decoration-none small">
+            Generate Questions <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="portal-card portal-card-hover p-4 h-100">
+          <div class="stat-icon primary mb-3"><i class="bi bi-graph-up-arrow"></i></div>
+          <h5 class="fw-bold mb-2">Performance Analytics</h5>
+          <p class="text-muted small mb-3">
+            Track your interview trajectory with Chart.js analytics. Identify recurring strengths, weaknesses, Technical vs HR readiness, and personalized study roadmaps.
+          </p>
+          <a href="{{ url_for('performance.index') }}" class="fw-semibold text-primary text-decoration-none small">
+            View Analytics <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Approved Experiences Preview -->
+  {% if recent_experiences %}
+  <div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="fw-bold mb-1">Recent Interview Experiences</h4>
+        <p class="text-muted small mb-0">Verified submissions shared by real candidates</p>
+      </div>
+      <a href="{{ url_for('experience.list_experiences') }}" class="btn btn-outline-primary btn-sm fw-semibold">
+        View All <i class="bi bi-chevron-right"></i>
+      </a>
+    </div>
+
+    <div class="row g-3">
+      {% for exp in recent_experiences %}
+      <div class="col-md-6 col-lg-4">
+        <div class="portal-card p-3 h-100 d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h6 class="fw-bold mb-0">{{ exp.company_name }}</h6>
+              <span class="text-muted small">{{ exp.job_role }}</span>
+            </div>
+            <span class="badge {% if exp.difficulty == 'Hard' %}bg-danger{% elif exp.difficulty == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+              {{ exp.difficulty }}
+            </span>
+          </div>
+
+          <p class="text-secondary small mb-3 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ exp.overall_experience }}
+          </p>
+
+          <div class="pt-2 border-top d-flex justify-content-between align-items-center small text-muted">
+            <span><i class="bi bi-layers me-1"></i> {{ exp.interview_rounds }} Rounds</span>
+            <span class="badge {% if exp.result == 'Selected' %}badge-selected{% elif exp.result == 'Rejected' %}badge-rejected{% else %}bg-light text-dark{% endif %}">
+              {{ exp.result }}
+            </span>
+            <a href="{{ url_for('experience.experience_detail', exp_id=exp.id) }}" class="btn btn-sm btn-link p-0 text-primary fw-semibold">
+              Read Details &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Call to action footer banner -->
+  <div class="p-5 rounded-4 text-center bg-white border shadow-sm">
+    <h3 class="fw-bold mb-2">Ready to Crack Your Next Tech Interview?</h3>
+    <p class="text-muted mb-4" style="max-width: 550px; margin: 0 auto;">
+      Create an account today to access all AI preparation tools, practice mock interviews, and submit your own interview experiences.
+    </p>
+    {% if not session.get('user_id') %}
+    <a href="{{ url_for('auth.register') }}" class="btn btn-portal-primary btn-lg px-5">Join PrepAI Today</a>
+    {% else %}
+    <a href="{{ url_for('mock_interview.setup') }}" class="btn btn-portal-primary btn-lg px-5">Start an AI Mock Interview</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

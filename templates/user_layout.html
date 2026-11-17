@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block layout %}
+<div class="app-wrapper">
+  <!-- Modern User Sidebar -->
+  <aside class="portal-sidebar">
+    <div class="px-2 mb-3">
+      <div class="d-flex align-items-center gap-2">
+        <div class="stat-icon primary" style="width: 40px; height: 40px; font-size: 1.25rem;">
+          <i class="bi bi-person-fill"></i>
+        </div>
+        <div>
+          <div class="fw-bold small text-truncate" style="max-width: 170px;">{{ session.get('user_name', 'Student User') }}</div>
+          <span class="badge bg-light text-secondary border small">{{ session.get('user_role', 'student')|capitalize }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-heading">Core Navigation</div>
+    <a href="{{ url_for('user.dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'user.dashboard' %}active{% endif %}">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+    <a href="{{ url_for('experience.list_experiences') }}" class="sidebar-nav-link {% if request.endpoint == 'experience.list_experiences' %}active{% endif %}">
+      <i class="bi bi-compass"></i> Explore Experiences
+    </a>
+    <a href="{{ url_for('experience.add_experience') }}" class="sidebar-nav-link {% if request.endpoint == 'experience.add_experience' %}active{% endif %}">
+      <i class="bi bi-plus-square"></i> Add Experience
+    </a>
+    <a href="{{ url_for('experience.my_experiences') }}" class="sidebar-nav-link {% if request.endpoint == 'experience.my_experiences' %}active{% endif %}">
+      <i class="bi bi-journal-check"></i> My Experiences
+    </a>
+
+    <div class="sidebar-heading">AI Preparation Modules</div>
+    <a href="{{ url_for('mock_interview.setup') }}" class="sidebar-nav-link {% if 'mock_interview' in request.endpoint %}active{% endif %}">
+      <i class="bi bi-robot"></i> AI Mock Interview
+    </a>
+    <a href="{{ url_for('question_generator.generate') }}" class="sidebar-nav-link {% if request.endpoint == 'question_generator.generate' %}active{% endif %}">
+      <i class="bi bi-patch-question"></i> AI Question Generator
+    </a>
+    <a href="{{ url_for('question_generator.saved_questions') }}" class="sidebar-nav-link {% if request.endpoint == 'question_generator.saved_questions' %}active{% endif %}">
+      <i class="bi bi-bookmark-star"></i> Saved Questions
+    </a>
+    <a href="{{ url_for('resume_analyzer.index') }}" class="sidebar-nav-link {% if 'resume_analyzer' in request.endpoint or request.endpoint == 'resume_analyzer.my_resumes' %}active{% endif %}">
+      <i class="bi bi-file-earmark-person"></i> AI Resume Analyzer
+    </a>
+    <a href="{{ url_for('smart_search.index') }}" class="sidebar-nav-link {% if request.endpoint == 'smart_search.index' %}active{% endif %}">
+      <i class="bi bi-search-heart"></i> AI Smart Search
+    </a>
+    <a href="{{ url_for('performance.index') }}" class="sidebar-nav-link {% if request.endpoint == 'performance.index' %}active{% endif %}">
+      <i class="bi bi-graph-up"></i> Performance Analysis
+    </a>
+
+    <div class="sidebar-heading">Settings</div>
+    <a href="{{ url_for('user.profile') }}" class="sidebar-nav-link {% if request.endpoint == 'user.profile' %}active{% endif %}">
+      <i class="bi bi-gear"></i> My Profile
+    </a>
+    <a href="{{ url_for('auth.logout') }}" class="sidebar-nav-link text-danger mt-auto">
+      <i class="bi bi-box-arrow-right text-danger"></i> Sign Out
+    </a>
+  </aside>
+
+  <!-- Content Area -->
+  <main class="portal-content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

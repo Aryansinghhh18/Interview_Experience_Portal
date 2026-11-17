@@ -1,0 +1,113 @@
+{% extends "user_layout.html" %}
+
+{% block title %}Edit Experience | PrepAI Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="mb-4">
+      <h3 class="fw-bold mb-1">Edit Interview Experience</h3>
+      <p class="text-muted small">Update your submission details. Note: Editing will place the submission back in the moderation queue for re-approval.</p>
+    </div>
+
+    <div class="portal-card p-4">
+      <form method="POST" action="{{ url_for('experience.edit_experience', exp_id=experience.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="company_name" class="form-label fw-semibold small">Company Name *</label>
+            <input type="text" list="company_list" class="form-control" id="company_name" name="company_name" value="{{ experience.company_name }}" required>
+            <datalist id="company_list">
+              {% for comp in companies %}
+              <option value="{{ comp.company_name }}">
+              {% endfor %}
+            </datalist>
+          </div>
+
+          <div class="col-md-6">
+            <label for="job_role" class="form-label fw-semibold small">Job Role / Position *</label>
+            <input type="text" class="form-control" id="job_role" name="job_role" value="{{ experience.job_role }}" required>
+          </div>
+
+          <div class="col-md-3">
+            <label for="interview_date" class="form-label fw-semibold small">Interview Date</label>
+            <input type="date" class="form-control" id="interview_date" name="interview_date" value="{{ experience.interview_date or '' }}">
+          </div>
+
+          <div class="col-md-3">
+            <label for="interview_type" class="form-label fw-semibold small">Interview Mode</label>
+            <select class="form-select" id="interview_type" name="interview_type">
+              <option value="Online" {% if experience.interview_type == 'Online' %}selected{% endif %}>Online / Remote</option>
+              <option value="Offline" {% if experience.interview_type == 'Offline' %}selected{% endif %}>Offline / On-Campus / Onsite</option>
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <label for="experience_level" class="form-label fw-semibold small">Candidate Level</label>
+            <select class="form-select" id="experience_level" name="experience_level">
+              <option value="Fresher" {% if experience.experience_level == 'Fresher' %}selected{% endif %}>Fresher / College Student</option>
+              <option value="Entry Level" {% if experience.experience_level == 'Entry Level' %}selected{% endif %}>Entry Level (0-2 Yrs)</option>
+              <option value="Mid Level" {% if experience.experience_level == 'Mid Level' %}selected{% endif %}>Mid Level (2-5 Yrs)</option>
+              <option value="Senior" {% if experience.experience_level == 'Senior' %}selected{% endif %}>Senior Level (5+ Yrs)</option>
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <label for="interview_rounds" class="form-label fw-semibold small">Total Rounds</label>
+            <input type="number" class="form-control" id="interview_rounds" name="interview_rounds" min="1" max="10" value="{{ experience.interview_rounds }}" required>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="technical_questions" class="form-label fw-semibold small">Technical Questions & Coding Problems Asked</label>
+          <textarea class="form-control" id="technical_questions" name="technical_questions" rows="4">{{ experience.technical_questions or '' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="hr_questions" class="form-label fw-semibold small">HR / Behavioral Questions Asked</label>
+          <textarea class="form-control" id="hr_questions" name="hr_questions" rows="3">{{ experience.hr_questions or '' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="overall_experience" class="form-label fw-semibold small">Overall Experience & Detailed Process *</label>
+          <textarea class="form-control" id="overall_experience" name="overall_experience" rows="4" required>{{ experience.overall_experience }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="preparation_tips" class="form-label fw-semibold small">Preparation Advice & Recommended Resources</label>
+          <textarea class="form-control" id="preparation_tips" name="preparation_tips" rows="3">{{ experience.preparation_tips or '' }}</textarea>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="difficulty" class="form-label fw-semibold small">Overall Difficulty</label>
+            <select class="form-select" id="difficulty" name="difficulty">
+              <option value="Easy" {% if experience.difficulty == 'Easy' %}selected{% endif %}>Easy</option>
+              <option value="Medium" {% if experience.difficulty == 'Medium' %}selected{% endif %}>Medium</option>
+              <option value="Hard" {% if experience.difficulty == 'Hard' %}selected{% endif %}>Hard</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="result" class="form-label fw-semibold small">Final Outcome / Result</label>
+            <select class="form-select" id="result" name="result">
+              <option value="Selected" {% if experience.result == 'Selected' %}selected{% endif %}>Selected</option>
+              <option value="Rejected" {% if experience.result == 'Rejected' %}selected{% endif %}>Rejected</option>
+              <option value="Waiting" {% if experience.result == 'Waiting' %}selected{% endif %}>Waiting</option>
+              <option value="Not Disclosed" {% if experience.result == 'Not Disclosed' %}selected{% endif %}>Not Disclosed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{{ url_for('experience.my_experiences') }}" class="btn btn-outline-secondary">Cancel</a>
+          <button type="submit" class="btn btn-portal-primary px-4 fw-semibold">
+            Save & Re-submit for Review
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "user_layout.html" %}
+
+{% block title %}Share Interview Experience | PrepAI Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="mb-4">
+      <h3 class="fw-bold mb-1">Share Your Interview Experience</h3>
+      <p class="text-muted small">Help thousands of fellow students and job seekers prepare by sharing real questions, rounds, and tips.</p>
+    </div>
+
+    <div class="alert alert-info py-2 px-3 small border-0 mb-4">
+      <i class="bi bi-info-circle-fill me-1"></i> <strong>Quality & Moderation Policy:</strong> All submissions enter pending approval to maintain authentic, high-quality content. Your experience will become publicly searchable upon administrator review.
+    </div>
+
+    <div class="portal-card p-4">
+      <form method="POST" action="{{ url_for('experience.add_experience') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Step 1: Company & Role Details -->
+        <h5 class="fw-bold text-primary mb-3"><i class="bi bi-1-circle me-1"></i> Company & Role Information</h5>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="company_name" class="form-label fw-semibold small">Company Name *</label>
+            <input type="text" list="company_list" class="form-control" id="company_name" name="company_name" placeholder="e.g. Google, Microsoft, Amazon" required>
+            <datalist id="company_list">
+              {% for comp in companies %}
+              <option value="{{ comp.company_name }}">
+              {% endfor %}
+            </datalist>
+          </div>
+
+          <div class="col-md-6">
+            <label for="job_role" class="form-label fw-semibold small">Job Role / Position *</label>
+            <input type="text" class="form-control" id="job_role" name="job_role" placeholder="e.g. Software Development Engineer, Frontend Dev" required>
+          </div>
+
+          <div class="col-md-3">
+            <label for="interview_date" class="form-label fw-semibold small">Interview Date</label>
+            <input type="date" class="form-control" id="interview_date" name="interview_date">
+          </div>
+
+          <div class="col-md-3">
+            <label for="interview_type" class="form-label fw-semibold small">Interview Mode</label>
+            <select class="form-select" id="interview_type" name="interview_type">
+              <option value="Online">Online / Remote</option>
+              <option value="Offline">Offline / On-Campus / Onsite</option>
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <label for="experience_level" class="form-label fw-semibold small">Candidate Level</label>
+            <select class="form-select" id="experience_level" name="experience_level">
+              <option value="Fresher" selected>Fresher / College Student</option>
+              <option value="Entry Level">Entry Level (0-2 Yrs)</option>
+              <option value="Mid Level">Mid Level (2-5 Yrs)</option>
+              <option value="Senior">Senior Level (5+ Yrs)</option>
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <label for="interview_rounds" class="form-label fw-semibold small">Total Rounds</label>
+            <input type="number" class="form-control" id="interview_rounds" name="interview_rounds" min="1" max="10" value="3" required>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <!-- Step 2: Questions & Experience Details -->
+        <h5 class="fw-bold text-primary mb-3"><i class="bi bi-2-circle me-1"></i> Interview Rounds & Questions</h5>
+        <div class="mb-3">
+          <label for="technical_questions" class="form-label fw-semibold small">Technical Questions & Coding Problems Asked</label>
+          <textarea class="form-control" id="technical_questions" name="technical_questions" rows="4" placeholder="Detail specific coding questions, data structures (Arrays, Trees, DP), system design topics, or SQL queries asked..."></textarea>
+          <div class="form-text">List individual questions round by round if applicable.</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="hr_questions" class="form-label fw-semibold small">HR / Behavioral / Managerial Questions Asked</label>
+          <textarea class="form-control" id="hr_questions" name="hr_questions" rows="3" placeholder="e.g. Tell me about a time you handled conflict, Why this company, Greatest challenge..."></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="overall_experience" class="form-label fw-semibold small">Overall Experience & Detailed Process *</label>
+          <textarea class="form-control" id="overall_experience" name="overall_experience" rows="4" placeholder="Describe the atmosphere, interviewers' behavior, duration of rounds, whether hints were given..." required></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="preparation_tips" class="form-label fw-semibold small">Preparation Advice & Recommended Resources</label>
+          <textarea class="form-control" id="preparation_tips" name="preparation_tips" rows="3" placeholder="What key topics should candidates prepare? Any specific platform or book you recommend?"></textarea>
+        </div>
+
+        <hr class="my-4">
+
+        <!-- Step 3: Outcome & Difficulty -->
+        <h5 class="fw-bold text-primary mb-3"><i class="bi bi-3-circle me-1"></i> Outcome & Difficulty Rating</h5>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="difficulty" class="form-label fw-semibold small">Overall Difficulty</label>
+            <select class="form-select" id="difficulty" name="difficulty">
+              <option value="Easy">Easy &bull; Standard questions, relaxed pace</option>
+              <option value="Medium" selected>Medium &bull; Standard LeetCode/System design, expected rigor</option>
+              <option value="Hard">Hard &bull; Deep algorithmic edge cases, advanced design</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label for="result" class="form-label fw-semibold small">Final Outcome / Result</label>
+            <select class="form-select" id="result" name="result">
+              <option value="Selected" selected>Selected / Received Offer</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Waiting">Waiting for Decision</option>
+              <option value="Not Disclosed">Prefer Not to Disclose</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{{ url_for('user.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+          <button type="submit" class="btn btn-portal-primary px-4 fw-semibold">
+            <i class="bi bi-send me-1"></i> Submit for Review
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

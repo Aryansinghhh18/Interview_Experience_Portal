@@ -1,0 +1,209 @@
+{% extends "user_layout.html" %}
+
+{% block title %}AI Question Generator | PrepAI Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-11">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="ai-badge"><i class="bi bi-patch-question-fill"></i> AI Module 2</span>
+          <span class="text-muted small">Powered by {{ active_ai_provider|upper }}</span>
+        </div>
+        <h3 class="fw-bold mb-1">AI Interview Question Generator</h3>
+        <p class="text-muted small mb-0">Generate targeted practice questions with model answers, conceptual explanations, and core topics to study.</p>
+      </div>
+      <a href="{{ url_for('question_generator.saved_questions') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-bookmark-star-fill text-warning me-1"></i> View Saved Questions
+      </a>
+    </div>
+
+    <!-- Generator Form Card -->
+    <div class="portal-card p-4 mb-4">
+      <form method="POST" action="{{ url_for('question_generator.generate') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label for="company_name" class="form-label fw-semibold small">Company Name *</label>
+            <input type="text" list="company_list" class="form-control form-control-sm" id="company_name" name="company_name" value="{{ selected_company or '' }}" placeholder="e.g. Google, Amazon, TCS" required>
+            <datalist id="company_list">
+              {% for comp in companies %}
+              <option value="{{ comp.company_name }}">
+              {% endfor %}
+            </datalist>
+          </div>
+
+          <div class="col-md-4">
+            <label for="job_role" class="form-label fw-semibold small">Job Role / Position *</label>
+            <input type="text" class="form-control form-control-sm" id="job_role" name="job_role" value="{{ selected_role or '' }}" placeholder="e.g. SDE 1, Backend Developer" required>
+          </div>
+
+          <div class="col-md-4">
+            <label for="technical_domain" class="form-label fw-semibold small">Technical Domain (Optional)</label>
+            <input type="text" class="form-control form-control-sm" id="technical_domain" name="technical_domain" value="{{ selected_domain or '' }}" placeholder="e.g. Python, SQL, Cloud, React">
+          </div>
+
+          <div class="col-md-4">
+            <label for="category" class="form-label fw-semibold small">Question Category</label>
+            <select class="form-select form-select-sm" id="category" name="category">
+              <option value="Technical" {% if selected_category == 'Technical' %}selected{% endif %}>Technical & Algorithmic</option>
+              <option value="Programming" {% if selected_category == 'Programming' %}selected{% endif %}>Programming & Coding Problems</option>
+              <option value="Conceptual" {% if selected_category == 'Conceptual' %}selected{% endif %}>Conceptual & Fundamentals</option>
+              <option value="Scenario-based" {% if selected_category == 'Scenario-based' %}selected{% endif %}>Scenario-based & System Design</option>
+              <option value="HR" {% if selected_category == 'HR' %}selected{% endif %}>HR & Behavioral (STAR format)</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="difficulty" class="form-label fw-semibold small">Difficulty Level</label>
+            <select class="form-select form-select-sm" id="difficulty" name="difficulty">
+              <option value="Beginner" {% if selected_difficulty == 'Beginner' %}selected{% endif %}>Beginner</option>
+              <option value="Intermediate" {% if selected_difficulty == 'Intermediate' or not selected_difficulty %}selected{% endif %}>Intermediate</option>
+              <option value="Advanced" {% if selected_difficulty == 'Advanced' %}selected{% endif %}>Advanced</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="count" class="form-label fw-semibold small">Questions Count</label>
+            <select class="form-select form-select-sm" id="count" name="count">
+              <option value="3">3 Questions</option>
+              <option value="5" selected>5 Questions</option>
+              <option value="8">8 Questions</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center pt-2">
+          <span class="text-muted small">
+            <i class="bi bi-database-check text-success me-1"></i> Uses approved company experiences as optional background context.
+          </span>
+          <button type="submit" class="btn btn-portal-primary btn-sm px-4 fw-semibold">
+            <i class="bi bi-sparkles me-1"></i> Generate Practice Questions
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Notice -->
+    <div class="alert alert-light border small text-muted mb-4">
+      <i class="bi bi-info-circle me-1"></i> <strong>Practice Note:</strong> AI-generated questions are tailored practice questions synthesized from role patterns and approved experience context, not verified confidential actual interview papers.
+    </div>
+
+    <!-- Generated Questions Display -->
+    {% if questions %}
+    <div class="mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Generated Practice Questions ({{ questions|length }})</h5>
+        <button class="btn btn-outline-secondary btn-sm" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+          <i class="bi bi-arrow-repeat me-1"></i> Regenerate
+        </button>
+      </div>
+
+      <div class="accordion accordion-modern" id="generatedAccordion">
+        {% for q in questions %}
+        <div class="accordion-item mb-3">
+          <h2 class="accordion-header" id="headingGen{{ loop.index }}">
+            <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGen{{ loop.index }}">
+              <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                <span class="text-truncate fw-semibold" style="max-width: 75%;">
+                  <strong>Q{{ loop.index }}:</strong> {{ q.question }}
+                </span>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-light text-primary border small">{{ q.topic or q.category }}</span>
+                  <span class="badge {% if q.difficulty == 'Advanced' %}bg-danger{% elif q.difficulty == 'Intermediate' %}bg-warning text-dark{% else %}bg-success{% endif %} small">
+                    {{ q.difficulty }}
+                  </span>
+                </div>
+              </div>
+            </button>
+          </h2>
+          <div id="collapseGen{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" data-bs-parent="#generatedAccordion">
+            <div class="accordion-body bg-light">
+              <!-- Question full text -->
+              <div class="p-3 bg-white rounded border mb-3">
+                <h6 class="fw-bold text-dark mb-1">Question:</h6>
+                <p class="mb-0 text-dark">{{ q.question }}</p>
+              </div>
+
+              <!-- Suggested Model Answer -->
+              <div class="mb-3">
+                <h6 class="fw-bold small text-muted text-uppercase"><i class="bi bi-check2-circle text-success me-1"></i> Suggested Model Answer</h6>
+                <div class="p-3 bg-white rounded border small text-secondary" style="white-space: pre-line; line-height: 1.6;">
+                  {{ q.suggested_answer }}
+                </div>
+              </div>
+
+              <!-- Conceptual Explanation -->
+              {% if q.explanation %}
+              <div class="mb-3">
+                <h6 class="fw-bold small text-muted text-uppercase"><i class="bi bi-lightbulb text-warning me-1"></i> Why This Question Matters & Conceptual Explanation</h6>
+                <p class="small text-secondary mb-0 p-2 bg-white rounded border">{{ q.explanation }}</p>
+              </div>
+              {% endif %}
+
+              <!-- Key Concepts to Study -->
+              {% if q.key_concepts %}
+              <div class="mb-3">
+                <h6 class="fw-bold small text-muted text-uppercase mb-2"><i class="bi bi-tags text-primary me-1"></i> Core Concepts to Study</h6>
+                <div>
+                  {% for concept in q.key_concepts.split(',') %}
+                  <span class="badge bg-white text-dark border me-1 mb-1 small">{{ concept.strip() }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+
+              <!-- Actions: Bookmark & Practice -->
+              <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                <button class="btn btn-sm btn-outline-secondary btn-bookmark-question" data-question-id="{{ q.id }}" data-saved="{{ 'true' if q.is_saved else 'false' }}">
+                  <i class="bi {% if q.is_saved %}bi-bookmark-fill{% else %}bi-bookmark{% endif %}"></i> 
+                  {% if q.is_saved %}Saved{% else %}Save Question{% endif %}
+                </button>
+
+                <form method="POST" action="{{ url_for('mock_interview.start') }}" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="company_name" value="{{ q.company_name or selected_company }}">
+                  <input type="hidden" name="job_role" value="{{ q.job_role or selected_role }}">
+                  <input type="hidden" name="category" value="{{ q.category }}">
+                  <input type="hidden" name="difficulty" value="{{ q.difficulty }}">
+                  <input type="hidden" name="total_questions" value="3">
+                  <button type="submit" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-play-circle me-1"></i> Practice in Mock Interview
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% elif recent_questions %}
+    <!-- Recent Questions Shelf -->
+    <div class="portal-card p-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-clock-history text-primary me-2"></i>Recently Generated Practice Questions</h5>
+      <div class="list-group list-group-flush">
+        {% for rq in recent_questions %}
+        <div class="list-group-item px-0 py-3">
+          <div class="d-flex justify-content-between align-items-start mb-1">
+            <span class="fw-bold text-dark">{{ rq.question }}</span>
+            <span class="badge bg-light text-primary border ms-2">{{ rq.category }}</span>
+          </div>
+          <p class="text-secondary small mb-2 text-truncate">{{ rq.suggested_answer }}</p>
+          <div class="d-flex justify-content-between align-items-center small">
+            <span class="text-muted">{{ rq.company_name }} &bull; {{ rq.job_role }} &bull; {{ rq.difficulty }}</span>
+            <button class="btn btn-sm btn-outline-secondary btn-bookmark-question" data-question-id="{{ rq.id }}" data-saved="{{ 'true' if rq.is_saved else 'false' }}">
+              <i class="bi {% if rq.is_saved %}bi-bookmark-fill{% else %}bi-bookmark{% endif %}"></i> Save
+            </button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

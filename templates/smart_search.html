@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}AI Smart Search | PrepAI Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header -->
+  <div class="text-center mb-4">
+    <span class="ai-badge mb-2"><i class="bi bi-search-heart-fill"></i> AI Module 4</span>
+    <h2 class="fw-bold">Semantic Interview Experience Search</h2>
+    <p class="text-muted" style="max-width: 650px; margin: 0 auto;">
+      Ask natural language questions like <em>"Python freshers with difficult dynamic programming rounds"</em> or <em>"companies asking SQL indexing"</em>.
+    </p>
+  </div>
+
+  <!-- Search Card -->
+  <div class="portal-card p-4 mb-4 shadow-sm">
+    <form method="GET" action="{{ url_for('smart_search.index') }}">
+      <div class="input-group input-group-lg mb-3">
+        <span class="input-group-text bg-white border-end-0 text-primary"><i class="bi bi-stars fs-4"></i></span>
+        <input type="text" class="form-control border-start-0" id="searchQueryInput" name="q" value="{{ query }}" placeholder="e.g. Find companies that asked SQL, ACID properties, and DBMS questions for entry-level developers..." autofocus>
+        <button type="submit" class="btn btn-portal-primary px-4 fw-semibold">
+          <i class="bi bi-search me-1"></i> Smart Search
+        </button>
+      </div>
+
+      <!-- Relational Filter Expanders -->
+      <div class="row g-2 align-items-center">
+        <div class="col-md-3">
+          <select class="form-select form-select-sm" name="company">
+            <option value="">All Companies</option>
+            {% for comp in companies %}
+            <option value="{{ comp.company_name }}" {% if selected_company == comp.company_name %}selected{% endif %}>
+              {{ comp.company_name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <input type="text" class="form-control form-control-sm" name="role" value="{{ selected_role }}" placeholder="Job Role (optional)">
+        </div>
+
+        <div class="col-md-3">
+          <select class="form-select form-select-sm" name="difficulty">
+            <option value="">Any Difficulty</option>
+            <option value="Easy" {% if selected_difficulty == 'Easy' %}selected{% endif %}>Easy</option>
+            <option value="Medium" {% if selected_difficulty == 'Medium' %}selected{% endif %}>Medium</option>
+            <option value="Hard" {% if selected_difficulty == 'Hard' %}selected{% endif %}>Hard</option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <select class="form-select form-select-sm" name="experience_level">
+            <option value="">Any Level</option>
+            <option value="Fresher" {% if selected_level == 'Fresher' %}selected{% endif %}>Fresher</option>
+            <option value="Entry Level" {% if selected_level == 'Entry Level' %}selected{% endif %}>Entry Level</option>
+            <option value="Mid Level" {% if selected_level == 'Mid Level' %}selected{% endif %}>Mid Level</option>
+            <option value="Senior" {% if selected_level == 'Senior' %}selected{% endif %}>Senior</option>
+          </select>
+        </div>
+      </div>
+    </form>
+
+    <!-- Suggested Queries Pills -->
+    <div class="mt-3 pt-3 border-top">
+      <span class="small fw-semibold text-muted me-2"><i class="bi bi-lightbulb me-1"></i> Try searching:</span>
+      {% for sq in suggested_queries %}
+      <a href="{{ url_for('smart_search.index', q=sq) }}" class="badge bg-light text-secondary border text-decoration-none me-1 mb-1 small">
+        {{ sq }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- User Search History -->
+    {% if search_history %}
+    <div class="mt-2 small text-muted">
+      <span class="fw-semibold me-2"><i class="bi bi-clock-history me-1"></i> Your recent searches:</span>
+      {% for sh in search_history %}
+      <a href="{{ url_for('smart_search.index', q=sh) }}" class="badge bg-white text-dark border text-decoration-none me-1">
+        {{ sh }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Search Results -->
+  {% if results %}
+  <div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold mb-0">Relevance-Ranked Experiences ({{ results|length }})</h5>
+      <span class="small text-muted"><i class="bi bi-cpu me-1"></i> Vector Similarity Matching</span>
+    </div>
+
+    <div class="row g-4">
+      {% for r in results %}
+      {% set exp = r.experience %}
+      <div class="col-md-6">
+        <div class="portal-card p-4 h-100 d-flex flex-column portal-card-hover border-start border-4 border-primary">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <span class="badge bg-light text-primary border mb-1">{{ exp.company_name }}</span>
+              <h5 class="fw-bold mb-1">{{ exp.job_role }}</h5>
+              <div class="text-muted small">
+                <span>{{ exp.experience_level }}</span> &bull; 
+                <span>{{ exp.interview_rounds }} Rounds</span> &bull;
+                <span>{{ exp.interview_type }}</span>
+              </div>
+            </div>
+
+            <div class="text-end">
+              <span class="badge bg-primary text-white fs-6 py-1 px-2 mb-1">
+                {{ r.similarity_score }}% Match
+              </span>
+              <div>
+                <span class="badge {% if exp.difficulty == 'Hard' %}bg-danger{% elif exp.difficulty == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %} small">
+                  {{ exp.difficulty }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Matching Snippet Explanation -->
+          <div class="p-2 bg-primary-light rounded border border-primary-subtle text-primary small mb-3">
+            <i class="bi bi-stars me-1"></i> <strong>Why this matched:</strong> "{{ r.match_snippet }}"
+          </div>
+
+          <p class="text-secondary small mb-3 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ exp.overall_experience }}
+          </p>
+
+          <div class="pt-2 border-top d-flex justify-content-between align-items-center">
+            <span class="badge {% if exp.result == 'Selected' %}badge-selected{% elif exp.result == 'Rejected' %}badge-rejected{% else %}bg-light text-dark{% endif %} small">
+              {{ exp.result }}
+            </span>
+            <a href="{{ url_for('experience.experience_detail', exp_id=exp.id) }}" class="btn btn-sm btn-outline-primary fw-semibold">
+              Read Full Experience &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% elif query %}
+  <div class="empty-state">
+    <i class="bi bi-search empty-state-icon"></i>
+    <h5>No experiences matched your semantic query.</h5>
+    <p class="text-muted small">Try broader keywords or browse all approved experiences.</p>
+    <a href="{{ url_for('experience.list_experiences') }}" class="btn btn-outline-primary btn-sm">Browse All Experiences</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

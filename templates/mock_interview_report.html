@@ -1,0 +1,181 @@
+{% extends "user_layout.html" %}
+
+{% block title %}Mock Interview Report: {{ interview_session.company_name }} | PrepAI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i> Completed</span>
+          <span class="text-muted small">Session #{{ interview_session.id }} &bull; {{ interview_session.created_at[:10] if interview_session.created_at else '' }}</span>
+        </div>
+        <h3 class="fw-bold mb-0">Comprehensive Interview Performance Report</h3>
+        <p class="text-muted small mb-0">{{ interview_session.company_name }} &bull; {{ interview_session.job_role }} ({{ interview_session.difficulty }} &bull; {{ interview_session.interview_category }})</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('mock_interview.setup') }}" class="btn btn-portal-primary btn-sm">
+          <i class="bi bi-arrow-repeat me-1"></i> Practice Again
+        </a>
+        <a href="{{ url_for('performance.index') }}" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-graph-up me-1"></i> Overall Analytics
+        </a>
+      </div>
+    </div>
+
+    <!-- Executive Summary Card with Score Meter -->
+    <div class="portal-card p-4 mb-4">
+      <div class="row align-items-center">
+        <div class="col-md-4 text-center border-end">
+          <div class="score-circle mb-3" style="--score: {{ interview_session.overall_score or 75 }};">
+            <div class="score-circle-inner">
+              <span class="display-6 fw-bold text-primary">{{ interview_session.overall_score or 0 }}%</span>
+              <span class="text-muted small fw-semibold">AI Benchmark</span>
+            </div>
+          </div>
+          <h6 class="fw-bold mb-1">Overall Session Score</h6>
+          <span class="badge bg-light text-secondary border small">Based on {{ questions|length }} Evaluated Questions</span>
+        </div>
+
+        <div class="col-md-8 ps-md-4 mt-3 mt-md-0">
+          <h5 class="fw-bold text-dark mb-2"><i class="bi bi-file-earmark-text text-primary me-2"></i>Executive Assessment</h5>
+          <p class="text-secondary small mb-3" style="line-height: 1.7;">
+            {{ interview_session.final_feedback or 'You have demonstrated solid foundational skills with clear areas for targeted improvement.' }}
+          </p>
+
+          <div class="alert alert-light border small text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i> <strong>Practice Disclaimer:</strong> This score is an AI-generated assessment evaluating your answers against standard technical and communication criteria. It serves as actionable practice feedback rather than an objective guarantee of hiring outcomes.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Strengths, Weaknesses & Recommendations -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="portal-card p-3 h-100 border-success">
+          <h6 class="fw-bold text-success mb-2"><i class="bi bi-hand-thumbs-up-fill me-1"></i> Recurring Strengths</h6>
+          <p class="text-secondary small mb-0" style="white-space: pre-line;">
+            {{ interview_session.strengths_summary or 'Structured thought process and articulate communication.' }}
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="portal-card p-3 h-100 border-danger">
+          <h6 class="fw-bold text-danger mb-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> Growth Opportunities</h6>
+          <p class="text-secondary small mb-0" style="white-space: pre-line;">
+            {{ interview_session.weaknesses_summary or 'Could provide deeper edge case analysis and asymptotic complexity tradeoffs.' }}
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="portal-card p-3 h-100 border-primary">
+          <h6 class="fw-bold text-primary mb-2"><i class="bi bi-bullseye me-1"></i> Recommended Next Steps</h6>
+          <p class="text-secondary small mb-0" style="white-space: pre-line;">
+            {{ interview_session.recommendations or 'Review distributed caching patterns and rehearse concise STAR behavioral examples.' }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Question-by-Question Breakdown -->
+    <div class="portal-card p-4 mb-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-list-check text-primary me-2"></i>Question-by-Question Analysis</h5>
+
+      <div class="accordion accordion-modern" id="questionsAccordion">
+        {% for q in questions %}
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="heading{{ q.id }}">
+            <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ q.id }}">
+              <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                <span class="text-truncate" style="max-width: 75%;">
+                  <strong>#{{ q.question_order }}:</strong> {{ q.question }}
+                </span>
+                <span class="badge {% if q.overall_question_score and q.overall_question_score >= 80 %}bg-success{% elif q.overall_question_score and q.overall_question_score >= 60 %}bg-warning text-dark{% else %}bg-danger{% endif %} ms-2">
+                  {{ q.overall_question_score or 0 }}%
+                </span>
+              </div>
+            </button>
+          </h2>
+          <div id="collapse{{ q.id }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" data-bs-parent="#questionsAccordion">
+            <div class="accordion-body bg-light">
+              <!-- Submitted Answer -->
+              <div class="mb-3">
+                <h6 class="fw-bold small text-muted text-uppercase">Your Submitted Answer</h6>
+                <div class="p-3 bg-white rounded border small text-dark" style="white-space: pre-line;">
+                  {{ q.user_answer or 'No answer submitted.' }}
+                </div>
+              </div>
+
+              <!-- Rubric Breakdown -->
+              <div class="row g-2 mb-3 text-center">
+                <div class="col-3">
+                  <div class="p-2 bg-white rounded border small">
+                    <span class="text-muted d-block" style="font-size: 0.75rem;">Relevance</span>
+                    <strong class="text-primary">{{ q.relevance_score or 0 }}%</strong>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="p-2 bg-white rounded border small">
+                    <span class="text-muted d-block" style="font-size: 0.75rem;">Correctness</span>
+                    <strong class="text-success">{{ q.correctness_score or 0 }}%</strong>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="p-2 bg-white rounded border small">
+                    <span class="text-muted d-block" style="font-size: 0.75rem;">Completeness</span>
+                    <strong class="text-info">{{ q.completeness_score or 0 }}%</strong>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="p-2 bg-white rounded border small">
+                    <span class="text-muted d-block" style="font-size: 0.75rem;">Clarity</span>
+                    <strong class="text-warning">{{ q.clarity_score or 0 }}%</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Evaluator Feedback -->
+              <div class="mb-3">
+                <h6 class="fw-bold small text-muted text-uppercase">Evaluator Feedback</h6>
+                <p class="small text-secondary mb-2">{{ q.evaluation_feedback }}</p>
+                <div class="row g-2">
+                  {% if q.strengths %}
+                  <div class="col-md-6">
+                    <div class="p-2 bg-success-light rounded border border-success small text-success">
+                      <strong>Strength:</strong> {{ q.strengths }}
+                    </div>
+                  </div>
+                  {% endif %}
+                  {% if q.weaknesses %}
+                  <div class="col-md-6">
+                    <div class="p-2 bg-danger-light rounded border border-danger small text-danger">
+                      <strong>Gap:</strong> {{ q.weaknesses }}
+                    </div>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Suggested Answer -->
+              {% if q.suggested_answer %}
+              <div>
+                <h6 class="fw-bold small text-muted text-uppercase">Model Suggested Answer</h6>
+                <div class="p-3 bg-white rounded border small text-secondary" style="white-space: pre-line;">
+                  {{ q.suggested_answer }}
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
